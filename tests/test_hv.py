@@ -28,8 +28,8 @@ def test_create_domain_has_default_video(hv):
     """Verify new domains have virtio video device by default."""
     domain = hv.create_domain(name="video_test", distro="test")
     xml = domain.dom.XMLDesc(0)
-    assert '<video>' in xml
-    assert 'type="virtio"' in xml
+    assert "<video>" in xml
+    assert "type='virtio'" in xml
 
 
 def test_video_model_property_reads_from_xml(hv):
@@ -49,13 +49,13 @@ def test_set_custom_video_model(hv):
 
     # Verify XML was actually updated
     xml = domain.dom.XMLDesc(0)
-    assert 'type="qxl"' in xml
+    assert "type='qxl'" in xml
 
     # Change to cirrus
     domain.video_model = "cirrus"
     assert domain.video_model == "cirrus"
     xml = domain.dom.XMLDesc(0)
-    assert 'type="cirrus"' in xml
+    assert "type='cirrus'" in xml
 
 
 def test_distro_available(hv, tmpdir):
