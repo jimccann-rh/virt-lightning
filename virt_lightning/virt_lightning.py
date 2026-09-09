@@ -716,7 +716,6 @@ class LibvirtDomain:
         self.nics = []
         self.meta_data_media_type = None
         self.default_bus_type = None
-        self._video_model = None
 
     @property
     def root_password(self):
@@ -927,7 +926,13 @@ class LibvirtDomain:
 
     @property
     def video_model(self):
-        return self._video_model
+        """Get the current video model from domain XML."""
+        xml = self.dom.XMLDesc(0)
+        root = ET.fromstring(xml)
+        video_model_elem = root.find("./devices/video/model")
+        if video_model_elem is not None:
+            return video_model_elem.attrib.get("type")
+        return None
 
     @video_model.setter
     def video_model(self, model):
@@ -936,9 +941,9 @@ class LibvirtDomain:
         Args:
             model: Video model type (virtio, cirrus, qxl, vga, etc.)
         """
-        self._video_model = model
-        # Only update if specified and different from default
-        if model and model != "virtio":
+        # Only update if specified and different from current model
+        current_model = self.video_model
+        if model and model != current_model:
             self.update_video(model)
 
     def update_video(self, model):
@@ -957,11 +962,9 @@ class LibvirtDomain:
             # Update the type attribute
             video_model_elem.attrib["type"] = model
 
-        # Get connection and undefine current domain
-        conn = self.dom.connect()
-        self.dom.undefine()
-
         # Redefine the domain with updated XML
+        # defineXML() updates existing definitions atomically - no need to undefine()
+        conn = self.dom.connect()
         new_xml = ET.tostring(root).decode()
         new_dom = conn.defineXML(new_xml)
 
