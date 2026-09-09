@@ -956,11 +956,16 @@ class LibvirtDomain:
         xml = self.dom.XMLDesc(0)
         root = ET.fromstring(xml)
 
-        # Find the video model element
+        # Find the video model element and replace it
         video_model_elem = root.find("./devices/video/model")
         if video_model_elem is not None:
-            # Update the type attribute
+            # Clear all attributes to remove model-specific ones (e.g., ram for qxl)
+            video_model_elem.clear()
+            # Set basic attributes that work across all video models
             video_model_elem.attrib["type"] = model
+            video_model_elem.attrib["vram"] = "16384"
+            video_model_elem.attrib["heads"] = "1"
+            video_model_elem.attrib["primary"] = "yes"
 
         # Redefine the domain with updated XML
         # defineXML() updates existing definitions atomically - no need to undefine()
